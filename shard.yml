@@ -1,0 +1,13 @@
+name: polycry
+version: 0.1.0
+
+authors:
+  - Diego Guraieb <diego@degub.com>
+
+targets:
+  polycry:
+    main: src/polycry.cr
+
+crystal: '>= 1.10.1'
+
+license: MIT
