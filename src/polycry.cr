@@ -12,12 +12,11 @@ module Polycry
     # TODO add configurable folders?
 
     @[JSON::Field(ignore: true)]
-    property folders = ["components","bases","projects"]
+    property folders = ["components", "bases", "projects"]
 
-    property components = Hash(String,String).new
-    property bases = Hash(String,String).new
-    property projects = Hash(String,String).new
-
+    property components = Hash(String, String).new
+    property bases = Hash(String, String).new
+    property projects = Hash(String, String).new
 
     def load
       folders.each do |f|
@@ -29,38 +28,38 @@ module Polycry
     end
 
     def save
-      File.write(CONFIG_FILE,self.to_json)
+      File.write(CONFIG_FILE, self.to_json)
     end
 
     def setup
       # try to create all folders in current workspace
       folders.each do |d|
         begin
-        Dir.mkdir(d)
+          Dir.mkdir(d)
         rescue e
           puts e
         end
       end
     end
 
-    def crystal_proj(type,path)
+    def crystal_proj(type, path)
       system "crystal init #{type} #{path}"
       system "rm -Rf #{path}/.git #{path}/README.md #{path}/LICENSE"
     end
 
     def create_component(component)
-      crystal_proj("lib","components/#{component}")
+      crystal_proj("lib", "components/#{component}")
     end
 
     def create_base(base)
-      crystal_proj("lib","bases/#{base}")
+      crystal_proj("lib", "bases/#{base}")
     end
 
     def create_project(proj)
-      crystal_proj("app","projects/#{proj}")
+      crystal_proj("app", "projects/#{proj}")
     end
 
-    def create(object,params)
+    def create(object, params)
       case object
       when "component"
         create_component(params["name"])
@@ -70,7 +69,6 @@ module Polycry
         create_base(params["name"])
       end
     end
-
 
     def load_folder(folder)
       begin
@@ -92,7 +90,6 @@ module Polycry
     end
   end
 
-
   class Opts
     include JSON::Serializable
 
@@ -101,7 +98,7 @@ module Polycry
 
     property subcommand = ""
     property obj = ""
-    property params = Hash(String,String).new
+    property params = Hash(String, String).new
   end
 
   workspace = Workspace.new
@@ -112,31 +109,43 @@ module Polycry
   workspace.load
 
   options = Opts.new
-  parser =  OptionParser.new do |parser|
+  parser = OptionParser.new do |parser|
     parser.banner = "polycry [command] [component]"
-    parser.on("init","init workspace") do
+
+    parser.on("-h", "--help", "Show this help") do
+      puts parser
+      exit
+    end
+
+    parser.invalid_option do |flag|
+      STDERR.puts "ERROR: #{flag} is not a valid option."
+      STDERR.puts parser
+      exit(1)
+    end
+
+    parser.on("init", "init workspace") do
       options.subcommand = "init"
     end
 
-    parser.on("info","prints information on the Workspace") do
+    parser.on("info", "prints information on the Workspace") do
       options.subcommand = "info"
     end
 
-    parser.on("create","Create command.") do
+    parser.on("create", "Create command.") do
       options.subcommand = "create"
-      parser.on("component","creates a component into the workspace") do
+      parser.on("component", "creates a component into the workspace") do
         options.obj = "component"
-        parser.on("-n NAME", "--name=NAME", "Name for component") { |_name| options.params["name"] = _name}
+        parser.on("-n NAME", "--name=NAME", "Name for component") { |_name| options.params["name"] = _name }
       end
 
-      parser.on("base","Creates a base into the workspace") do
+      parser.on("base", "Creates a base into the workspace") do
         options.obj = "base"
-        parser.on("-n NAME", "--name=NAME", "Name for base") { |_name| options.params["name"] = _name}
+        parser.on("-n NAME", "--name=NAME", "Name for base") { |_name| options.params["name"] = _name }
       end
 
-      parser.on("project","Creates a project into the workspace") do
+      parser.on("project", "Creates a project into the workspace") do
         options.obj = "project"
-        parser.on("-n NAME", "--name=NAME", "Name for project") { |_name| options.params["name"] = _name}
+        parser.on("-n NAME", "--name=NAME", "Name for project") { |_name| options.params["name"] = _name }
       end
 
       parser.invalid_option do |flag|
@@ -160,8 +169,8 @@ module Polycry
     workspace.save
   when "create"
     case options.obj
-    when "base","project","component"
-      workspace.create(options.obj,options.params)
+    when "base", "project", "component"
+      workspace.create(options.obj, options.params)
     else
       STDERR.puts "ERROR: invalid object to create: component,base,project"
       exit(1)
